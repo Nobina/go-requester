@@ -15,7 +15,11 @@ type Client struct {
 }
 
 func (c *Client) Do(opts ...RequestOption) (*Response, error) {
-	req, err := NewRequest(append(c.defaultOptions, opts...)...)
+	if opts == nil {
+		opts = []RequestOption{}
+	}
+	opts = append(c.defaultOptions, opts...)
+	req, err := NewRequest(opts...)
 	if err != nil {
 		return nil, err
 	}
