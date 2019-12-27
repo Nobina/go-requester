@@ -114,7 +114,7 @@ func WithURL(url string) RequestOption {
 func WithHeader(header http.Header) RequestOption {
 	return func(r *Request) error {
 		for k, v := range header {
-			r.header[k] = v
+			r.header.Set(k, v)
 		}
 		return nil
 	}
