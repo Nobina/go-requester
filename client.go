@@ -26,7 +26,7 @@ func (c *Client) Do(opts ...RequestOption) (*Response, error) {
 		}
 	}
 
-	httpResp, err := c.httpClient.Do(req.request)
+	httpResp, err := c.httpClient.Do(req.Request)
 	resp := &Response{
 		Response: httpResp,
 	}
