@@ -111,7 +111,7 @@ func WithURL(url string) RequestOption {
 	}
 }
 
-func WithHeader(header http.Header) RequestOption {
+func WithHeader(header map[string]string) RequestOption {
 	return func(r *Request) error {
 		for k, v := range header {
 			r.header.Set(k, v)
