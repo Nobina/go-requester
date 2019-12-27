@@ -5,17 +5,25 @@ import (
 	"net/http"
 )
 
+type RequestValidatorFunc func(*Request) error
 type ClientOption func(*Client)
 
 type Client struct {
-	httpClient     *http.Client
-	defaultOptions []RequestOption
+	httpClient        *http.Client
+	defaultOptions    []RequestOption
+	requestValidators []RequestValidatorFunc
 }
 
 func (c *Client) Do(opts ...RequestOption) (*Response, error) {
 	req, err := NewRequest(append(c.defaultOptions, opts...)...)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, fn := range c.requestValidators {
+		if err := fn(req); err != nil {
+			return nil, err
+		}
 	}
 
 	httpResp, err := c.httpClient.Do(req.request)
@@ -33,7 +41,8 @@ func (c *Client) Do(opts ...RequestOption) (*Response, error) {
 
 func NewClient(opts ...ClientOption) *Client {
 	c := &Client{
-		defaultOptions: []RequestOption{},
+		defaultOptions:    []RequestOption{},
+		requestValidators: []RequestValidatorFunc{},
 	}
 
 	if opts != nil {
@@ -53,10 +62,10 @@ func WithHTTPClient(httpClient *http.Client) ClientOption {
 	return func(c *Client) { c.httpClient = httpClient }
 }
 
-func WithDefaultHeader(header http.Header) ClientOption {
-	return func(c *Client) { c.defaultOptions = append(c.defaultOptions, WithHeader(header)) }
+func WithDefaultOptions(opts []RequestOption) ClientOption {
+	return func(c *Client) { c.defaultOptions = append(c.defaultOptions, opts...) }
 }
 
-func WithDefaultHost(host string) ClientOption {
-	return func(c *Client) { c.defaultOptions = append(c.defaultOptions, WithHost(host)) }
+func WithRequestValidation(fn RequestValidatorFunc) ClientOption {
+	return func(c *Client) { c.requestValidators = append(c.requestValidators, fn) }
 }
