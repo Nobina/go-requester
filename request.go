@@ -40,7 +40,7 @@ func NewRequest(opts ...RequestOption) (*Request, error) {
 		r.method = http.MethodGet
 	}
 	if r.host == "" && r.url == "" {
-		return nil, statusError{CodeMissingURL, "no host/url defined"}
+		return nil, statusError{CodeMissingURL, CodeUnknown, "no host/url defined"}
 	}
 
 	var body io.Reader
@@ -53,7 +53,7 @@ func NewRequest(opts ...RequestOption) (*Request, error) {
 		case []byte:
 			body = bytes.NewBuffer(v)
 		default:
-			return nil, statusError{CodeInvalidBody, "invalid body type"}
+			return nil, statusError{CodeInvalidBody, CodeUnknown, "invalid body type"}
 		}
 	}
 
@@ -63,7 +63,7 @@ func NewRequest(opts ...RequestOption) (*Request, error) {
 	}
 
 	if req, err := http.NewRequest(r.method, uri, body); err != nil {
-		return nil, statusError{CodeUnknown, err.Error()}
+		return nil, statusError{CodeUnknown, CodeUnknown, err.Error()}
 	} else {
 		r.request = req
 	}
@@ -140,7 +140,7 @@ func WithForm(v interface{}) RequestOption {
 	return func(r *Request) error {
 		q, ok := v.(url.Values)
 		if !ok {
-			return statusError{CodeInvalidForm, "invalid form type, must be of type url.Values"}
+			return statusError{CodeInvalidForm, CodeUnknown, "invalid form type, must be of type url.Values"}
 		}
 		r.body = bytes.NewBuffer([]byte(q.Encode()))
 		return nil

@@ -31,9 +31,9 @@ func (c *Client) Do(opts ...RequestOption) (*Response, error) {
 		Response: httpResp,
 	}
 	if err != nil {
-		return nil, statusError{CodeUnknown, err.Error()}
+		return nil, statusError{CodeUnknown, CodeUnknown, err.Error()}
 	} else if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return nil, statusError{CodeBadResponseStatus, fmt.Sprintf("bad status code (%v)", resp.StatusCode)}
+		return nil, statusError{CodeBadResponseCode, resp.StatusCode, fmt.Sprintf("bad status code (%v)", resp.StatusCode)}
 	}
 
 	return resp, nil
