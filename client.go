@@ -62,7 +62,7 @@ func WithHTTPClient(httpClient *http.Client) ClientOption {
 	return func(c *Client) { c.httpClient = httpClient }
 }
 
-func WithDefaultOptions(opts []RequestOption) ClientOption {
+func WithDefaultOptions(opts ...RequestOption) ClientOption {
 	return func(c *Client) { c.defaultOptions = append(c.defaultOptions, opts...) }
 }
 
