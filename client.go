@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-type RequestValidatorFunc func(*Request) error
+type RequestValidatorFunc func(*http.Request) error
 type ClientOption func(*Client)
 
 type Client struct {
@@ -21,12 +21,12 @@ func (c *Client) Do(opts ...RequestOption) (*Response, error) {
 	}
 
 	for _, fn := range c.requestValidators {
-		if err := fn(req); err != nil {
+		if err := fn(req.request); err != nil {
 			return nil, err
 		}
 	}
 
-	httpResp, err := c.httpClient.Do(req.Request)
+	httpResp, err := c.httpClient.Do(req.request)
 	resp := &Response{
 		Response: httpResp,
 	}

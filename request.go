@@ -12,7 +12,7 @@ import (
 type RequestOption func(*Request) error
 
 type Request struct {
-	*http.Request
+	request *http.Request
 	method  string
 	host    string
 	path    string
@@ -65,19 +65,19 @@ func NewRequest(opts ...RequestOption) (*Request, error) {
 	if req, err := http.NewRequest(r.method, uri, body); err != nil {
 		return nil, statusError{CodeUnknown, err.Error()}
 	} else {
-		r.Request = req
+		r.request = req
 	}
 
 	for k, v := range r.header {
-		r.Request.Header[k] = v
+		r.request.Header[k] = v
 	}
 
 	if len(r.query) > 0 {
-		if len(r.Request.URL.RawQuery) > 0 {
-			r.Request.URL.RawQuery += "&"
+		if len(r.request.URL.RawQuery) > 0 {
+			r.request.URL.RawQuery += "&"
 		}
 
-		r.Request.URL.RawQuery += r.query.Encode()
+		r.request.URL.RawQuery += r.query.Encode()
 	}
 
 	return r, nil
