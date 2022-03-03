@@ -3,6 +3,7 @@ package requester
 import (
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 )
 
 type RequestValidatorFunc func(*http.Request) error
@@ -30,10 +31,39 @@ func (c *Client) Do(opts ...RequestOption) (*Response, error) {
 		}
 	}
 
+	if req.reqLogger != nil {
+		dump, err := httputil.DumpRequestOut(req.request, true)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = req.reqLogger.Write(dump)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	httpResp, err := c.httpClient.Do(req.request)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.respLogger != nil {
+		dump, err := httputil.DumpResponse(httpResp, true)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = req.respLogger.Write(dump)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	resp := &Response{
 		Response: httpResp,
 	}
+
 	if err != nil {
 		return resp, statusError{CodeUnknown, CodeUnknown, err.Error()}
 	} else if resp.StatusCode < 200 || resp.StatusCode > 299 {

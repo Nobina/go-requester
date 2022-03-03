@@ -2,6 +2,7 @@ package requester
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"io"
@@ -12,14 +13,17 @@ import (
 type RequestOption func(*Request) error
 
 type Request struct {
-	request *http.Request
-	method  string
-	host    string
-	path    string
-	url     string
-	header  http.Header
-	query   url.Values
-	body    interface{}
+	request    *http.Request
+	ctx        context.Context
+	method     string
+	host       string
+	path       string
+	url        string
+	header     http.Header
+	query      url.Values
+	body       interface{}
+	reqLogger  io.Writer
+	respLogger io.Writer
 }
 
 func NewRequest(opts ...RequestOption) (*Request, error) {
@@ -62,7 +66,11 @@ func NewRequest(opts ...RequestOption) (*Request, error) {
 		uri = r.host + r.path
 	}
 
-	if req, err := http.NewRequest(r.method, uri, body); err != nil {
+	if r.ctx == nil {
+		r.ctx = context.Background()
+	}
+
+	if req, err := http.NewRequestWithContext(r.ctx, r.method, uri, body); err != nil {
 		return nil, statusError{CodeUnknown, CodeUnknown, err.Error()}
 	} else {
 		r.request = req
@@ -169,6 +177,27 @@ func WithXML(v interface{}) RequestOption {
 		}
 		r.header["Content-Type"] = []string{"application/xml"}
 		r.body = buf
+		return nil
+	}
+}
+
+func WithContext(ctx context.Context) RequestOption {
+	return func(r *Request) error {
+		r.ctx = ctx
+		return nil
+	}
+}
+
+func WithRequestLogger(w io.Writer) RequestOption {
+	return func(r *Request) error {
+		r.reqLogger = w
+		return nil
+	}
+}
+
+func WithResponseLogger(w io.Writer) RequestOption {
+	return func(r *Request) error {
+		r.respLogger = w
 		return nil
 	}
 }
