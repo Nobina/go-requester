@@ -50,7 +50,9 @@ func NewRequest(opts ...RequestOption) (*Request, error) {
 	var body io.Reader
 	if r.body != nil {
 		switch v := r.body.(type) {
-		case io.Reader, bytes.Buffer:
+		case io.Reader:
+			body = v
+		case *bytes.Buffer:
 			body = v
 		case string:
 			body = bytes.NewBuffer([]byte(v))
