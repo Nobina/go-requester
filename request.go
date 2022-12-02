@@ -8,6 +8,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 type RequestOption func(*Request) error
@@ -32,11 +35,9 @@ func NewRequest(opts ...RequestOption) (*Request, error) {
 		query:  url.Values{},
 	}
 
-	if opts != nil {
-		for _, opt := range opts {
-			if err := opt(r); err != nil {
-				return nil, err
-			}
+	for _, opt := range opts {
+		if err := opt(r); err != nil {
+			return nil, err
 		}
 	}
 
@@ -91,6 +92,23 @@ func NewRequest(opts ...RequestOption) (*Request, error) {
 	}
 
 	return r, nil
+}
+
+// WithRequestTrace returns a RequestOption that will trace the request using datadog.
+// Side Effect: adds context to request
+func WithRequestTrace(ctx context.Context) RequestOption {
+	return func(r *Request) error {
+		if span, ok := tracer.SpanFromContext(ctx); ok {
+			r.ctx = ctx
+			err := tracer.Inject(span.Context(), tracer.HTTPHeadersCarrier(r.header))
+			if err != nil {
+				log.Warnf("failed to inject span into request: %v", err)
+			}
+		} else {
+			log.Warnf("requester: no span found in context")
+		}
+		return nil
+	}
 }
 
 func WithMethod(method string) RequestOption {

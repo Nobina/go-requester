@@ -79,10 +79,8 @@ func NewClient(opts ...ClientOption) *Client {
 		requestValidators: []RequestValidatorFunc{},
 	}
 
-	if opts != nil {
-		for _, opt := range opts {
-			opt(c)
-		}
+	for _, opt := range opts {
+		opt(c)
 	}
 
 	if c.httpClient == nil {
