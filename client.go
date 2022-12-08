@@ -39,17 +39,12 @@ func (c *Client) Do(opts ...RequestOption) (*Response, error) {
 	logger.Infof("url: %s", req.request.URL.String())
 	logger.Infof("method: %s", req.request.Method)
 	logger.Infof("body: %s", req.request.Body)
-	if req.reqLogger != nil {
-		dump, err := httputil.DumpRequestOut(req.request, true)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = req.reqLogger.Write(dump)
-		if err != nil {
-			return nil, err
-		}
+	dump, err := httputil.DumpRequestOut(req.request, true)
+	if err != nil {
+		return nil, err
 	}
+
+	logger.WithField("req_dump", dump).Infof("req dump old")
 
 	httpResp, err := c.httpClient.Do(req.request)
 	if err != nil {
