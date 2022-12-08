@@ -2,8 +2,11 @@ package requester
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httputil"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 type RequestValidatorFunc func(*http.Request) error
@@ -31,6 +34,8 @@ func (c *Client) Do(opts ...RequestOption) (*Response, error) {
 		}
 	}
 
+	req.reqLogger = logger.StandardLogger().Writer()
+	log.SetOutput(req.reqLogger)
 	if req.reqLogger != nil {
 		dump, err := httputil.DumpRequestOut(req.request, true)
 		if err != nil {
