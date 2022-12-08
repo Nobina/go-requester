@@ -2,7 +2,6 @@ package requester
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httputil"
 
@@ -34,8 +33,12 @@ func (c *Client) Do(opts ...RequestOption) (*Response, error) {
 		}
 	}
 
-	req.reqLogger = logger.StandardLogger().Writer()
-	log.SetOutput(req.reqLogger)
+	for k, v := range req.request.Header {
+		logger.Infof("header: %s: %s", k, v)
+	}
+	logger.Infof("url: %s", req.request.URL.String())
+	logger.Infof("method: %s", req.request.Method)
+	logger.Infof("body: %s", req.request.Body)
 	if req.reqLogger != nil {
 		dump, err := httputil.DumpRequestOut(req.request, true)
 		if err != nil {
